@@ -31,13 +31,13 @@ def swap(l, i, j):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    log.info(f'{message.from_user.username} sent {message.text}')
+    log.info("Received message")
     bot.send_message(message.chat.id, answers.start)
 
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
-    log.info(f'{message.from_user.username} sent {message.text}')
+    log.info("Received message")
     bot.send_message(message.chat.id, answers._help)
 
 
@@ -98,7 +98,7 @@ def show_queue(message):
                 out += f'>{i + 1} - @{queue[i][1]}\n'
             else:
                 out += f'{i + 1} - @{queue[i][1]}\n'
-    log.info(f"sending queue: {out}")
+    log.info("Sending queue")
     bot.send_message(message.chat.id, out)
     if get_user_pair(message) in queue:
         ind = queue.index(get_user_pair(message))
@@ -117,7 +117,7 @@ def get_out(message):
                 queue.remove(get_user_pair(message))
             except Exception as err:
                 log.error(f"Why did that happen...")
-                bot.send_message(message.chat.id, f'Не, ну чел, щас ты реально меня сломать попытался.. У меня эксепшен вылетел блин.. Смотри {err=}, {type(err)=}')
+                bot.send_message(message.chat.id, "An error occurred. Please try again.")
             bot.send_message(message.chat.id, answers.successfully_got_out)
     else:
         bot.send_message(message.chat.id, answers.you_are_not_in_queue)
@@ -132,18 +132,21 @@ def pass_one(message):
             if ind == len(queue) - 1:
                 bot.send_message(message.chat.id, f'Сорян, но ты и так на последнем месте..')
             else:
-                bot.send_message(message.chat.id, f'okэy меняю тебя местами с @{queue[ind+1]}')
+                bot.send_message(message.chat.id, f'okэy меняю тебя местами с @{queue[ind+1][1]}')
                 bot.send_message(queue[ind+1][0], f'@{queue[ind][1]} пропустил_а тебя вперед, радуйся')
                 swap(queue, ind, ind+1)
                 save_data()
         except Exception as err:
-            bot.send_message(message.chat.id, f'Не, ну чел, щас ты реально меня сломать попытался.. У меня эксепшен вылетел блин.. Смотри {err=}, {type(err)=}')
+            bot.send_message(message.chat.id, "An error occurred. Please try again.")
             
     else:
         bot.send_message(answers.you_are_not_in_queue)
     
 @bot.message_handler(commands=['clearqueue'])
 def clear_queue(message):
+    if message.from_user.id not in config.admin_user_ids:
+        bot.send_message(message.chat.id, "This command is restricted to queue administrators.")
+        return
     log.info(f"Data was cleared by {message.from_user.username}")
     global queue    
     queue = []    
@@ -152,7 +155,7 @@ def clear_queue(message):
 
 @bot.message_handler(func=lambda m: True)
 def casual_message(message):
-    log.info(f'{message.from_user.username} sent {message.text}')
+    log.info("Received message")
     error(message)
 
 def error(message):
